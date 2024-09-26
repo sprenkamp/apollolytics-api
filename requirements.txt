@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn[standard]
+openai==1.47.0
+pydantic==2.9.2
+langchain-openai==0.2.0
+langchain==0.3.0
+google-api-python-client==2.146.0
+pandas==2.2.3
+python-dotenv==1.0.1
+langchainhub==0.1.21
