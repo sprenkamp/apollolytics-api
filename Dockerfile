@@ -2,7 +2,12 @@
 FROM --platform=linux/amd64 python:3.9-slim
 
 ARG OPENAI_API_KEY
+ARG GOOGLE_CSE_ID
+ARG GOOLGE_API_KEY
+
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV GOOGLE_CSE_ID=${GOOGLE_CSE_ID}
+ENV GOOGLE_API_KEY=${GOOGLE_API_KEY}
 
 # Set the working directory inside the container
 WORKDIR /app
