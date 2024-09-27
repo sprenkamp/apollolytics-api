@@ -40,7 +40,6 @@ jobs:
     name: Deploy to AWS EC2 Instance
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: AWS SSM Send-Command
