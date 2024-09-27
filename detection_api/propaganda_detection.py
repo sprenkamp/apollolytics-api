@@ -22,9 +22,9 @@ class OpenAITextClassificationPropagandaInference:
         """
         # Initialize the language model with specific parameters
         self.llm = load_llm(model_name,
-                            temperature=0, # Set the temperature parameter for model sampling
+                            temperature=0,  # Set the temperature parameter for model sampling
+                            seed=RANDOM_SEED,  # NOTE currently no supported of the o1 models
                             model_kwargs={
-                                "seed": RANDOM_SEED, #NOTE currently no supported of the o1 models
                                 "response_format": {"type": "json_object"}
                             })
 
