@@ -13,12 +13,14 @@ def load_llm(model_name, **kwargs):  # Add **kwargs to accept any arguments
         temperature = kwargs.get('temperature', 0)
         max_tokens = kwargs.get('max_tokens', None)
         model_kwargs = kwargs.get('model_kwargs', {})
+        seed = kwargs.get('seed', None)
 
         llm = ChatOpenAI(
             model_name=model_name, 
             temperature=temperature,
             max_tokens=max_tokens,
-            model_kwargs=model_kwargs
+            model_kwargs=model_kwargs,
+            seed=seed
             )
 
     elif 'gemini' in model_name:
