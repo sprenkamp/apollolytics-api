@@ -106,7 +106,15 @@ class OpenAITextClassificationPropagandaInference:
         Returns:
             dict: A dictionary containing the detected propaganda techniques and their details.
         """
-        logging.info("Analyzing article for propaganda techniques...")
-        detection_output = self.detect_explain(input_text)
-        extracted_techniques_dict = self.format_output(detection_output)
-        return extracted_techniques_dict
+        try:
+            logging.info("Analyzing article for propaganda techniques...")
+            detection_output = self.detect_explain(input_text)
+            extracted_techniques_dict = self.format_output(detection_output)
+            extracted_techniques_dict["status"] = "success"
+            return extracted_techniques_dict
+        except Exception as e:
+            logging.error(f"An error occurred during analysis: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }

@@ -44,7 +44,30 @@ async def process_entry(entry, contextualizer, auto=False):
     return entry
 
 
-# WebSocket endpoint for analyzing articles
+async def contextualize(request, analysis_results):
+    if request.contextualize == True or request.contextualize == "Auto":
+        contextualizer = Contextualizer(model_name=request.model_name)
+        tasks = []  # List to store asyncio tasks
+
+        for category, entries in analysis_results.items():
+            for entry in entries:
+                if request.contextualize == "Auto":
+                    tasks.append(process_entry(entry, contextualizer, auto=True))
+                else:
+                    tasks.append(process_entry(entry, contextualizer))
+
+        # Run all tasks concurrently
+        await asyncio.gather(*tasks)
+        return True
+    return False
+
+
+def detect_propaganda(request):
+    inference_class = OpenAITextClassificationPropagandaInference(model_name=request.model_name)
+    analysis_results = inference_class.analyze_article(input_text=request.text)
+    return analysis_results
+
+
 @app.websocket("/ws/analyze_propaganda")
 async def websocket_endpoint(websocket: WebSocket):
     """
@@ -59,27 +82,28 @@ async def websocket_endpoint(websocket: WebSocket):
             request = Request.parse_raw(data)
 
             # Step 1: Perform propaganda analysis
-            inference_class = OpenAITextClassificationPropagandaInference(model_name=request.model_name)
-            analysis_results = inference_class.analyze_article(input_text=request.text)
+            analysis_results = detect_propaganda(request)
 
             # Step 2: Send the raw propaganda analysis back to the client
-            await websocket.send_text(json.dumps(analysis_results))
+            status = analysis_results.pop("status")
+            if status == "error":
+                await websocket.send_text(json.dumps({
+                    "type": "propaganda_detection",
+                    "status": "error",
+                    "message": analysis_results["error"]
+                }))
+                return
+            else:
+                await websocket.send_text(json.dumps({
+                    "type": "propaganda_detection",
+                    "status": "success",
+                    "data": analysis_results
+                }))
 
             # Step 3: If contextualization is enabled, process it and send the updated entries
-            if request.contextualize == True or request.contextualize == "Auto":
-                contextualizer = Contextualizer(model_name=request.model_name)
-                tasks = []  # List to store asyncio tasks
+            was_contextualized = await contextualize(request, analysis_results)
 
-                for category, entries in analysis_results.items():
-                    for entry in entries:
-                        if request.contextualize == "Auto":
-                            tasks.append(process_entry(entry, contextualizer, auto=True))
-                        else:
-                            tasks.append(process_entry(entry, contextualizer))
-
-                # Run all tasks concurrently
-                await asyncio.gather(*tasks)
-
+            if was_contextualized:
                 # Step 4: Send the contextualized results after processing
                 await websocket.send_text(json.dumps(analysis_results))
 
