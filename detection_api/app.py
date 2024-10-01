@@ -5,10 +5,9 @@ from pydantic import BaseModel
 from typing import Literal, Union
 import uvicorn  # ASGI server implementation for FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from tqdm import tqdm
+import logging
 from contextualizer import Contextualizer
 from propaganda_detection import OpenAITextClassificationPropagandaInference
-
 
 # Initialize the FastAPI application
 app = FastAPI()
@@ -52,7 +51,7 @@ async def websocket_endpoint(websocket: WebSocket):
     WebSocket connection to analyze articles for propaganda and broadcast results in real time.
     """
     await websocket.accept()
-    
+
     try:
         while True:
             # Receive the request data from WebSocket
@@ -83,9 +82,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # Step 4: Send the contextualized results after processing
                 await websocket.send_text(json.dumps(analysis_results))
-    
+
     except WebSocketDisconnect:
-        print("Client disconnected")
+        logging.info("Client disconnected")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+    finally:
+        await websocket.close()
 
 
 # Entry point for running the application
