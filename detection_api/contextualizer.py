@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 import re
 import pandas as pd
 from dotenv import load_dotenv
+import logging
+
 from load_llm import load_llm  # Custom function for loading language models
 from tqdm import tqdm
 
@@ -146,28 +148,32 @@ class Contextualizer:
         :param statement: The statement to classify as seeming fact or opinion, with a consideration for propaganda and disinformation.
         :return: True if the statement seems to be a factual statement (or is designed to appear as such), False if it seems to be an opinion.
         """
-        from langchain.chains import create_tagging_chain
-        # Adjust the grading schema to include examples related to propaganda and disinformation.
-        grading_schema = {
-            "properties": {
-                "fact_label": {
-                    "type": "string",
-                    "enum": ['0', '1'],
-                    # '0' for opinions or statements not attempting to appear factual, '1' for statements that appear factual.
-                    "description": "Classify the given statement with an emphasis on identifying potential propaganda or disinformation. \n"
-                                   "0: Opinions (e.g., 'Country X's leaders are the best in the world.', 'Only fools believe in climate change.')\n"
-                                   "1: Statement Appears Factual or Misleadingly Factual (e.g., 'Country Y has the highest crime rate due to its immigration policies.', 'Recent studies show that vaccines are more harmful than previously thought.', '9/11 was an inside job.')\n"
-                                   "Choose '0' or '1' based on whether the statement seems to be presenting a fact or an opinion, with an eye for potentially misleading information."
+        try:
+            from langchain.chains import create_tagging_chain
+            # Adjust the grading schema to include examples related to propaganda and disinformation.
+            grading_schema = {
+                "properties": {
+                    "fact_label": {
+                        "type": "string",
+                        "enum": ['0', '1'],
+                        # '0' for opinions or statements not attempting to appear factual, '1' for statements that appear factual.
+                        "description": "Classify the given statement with an emphasis on identifying potential propaganda or disinformation. \n"
+                                       "0: Opinions (e.g., 'Country X's leaders are the best in the world.', 'Only fools believe in climate change.')\n"
+                                       "1: Statement Appears Factual or Misleadingly Factual (e.g., 'Country Y has the highest crime rate due to its immigration policies.', 'Recent studies show that vaccines are more harmful than previously thought.', '9/11 was an inside job.')\n"
+                                       "Choose '0' or '1' based on whether the statement seems to be presenting a fact or an opinion, with an eye for potentially misleading information."
+                    },
                 },
-            },
-            "required": ["fact_label"],
-        }
+                "required": ["fact_label"],
+            }
 
-        # Classify the statement with a focus on its appearance as factual or opinionated, considering propaganda and disinformation.
-        output_grading = create_tagging_chain(grading_schema, self.llm).run(statement)
+            # Classify the statement with a focus on its appearance as factual or opinionated, considering propaganda and disinformation.
+            output_grading = create_tagging_chain(grading_schema, self.llm).run(statement)
 
-        # Interpret the classification result as a boolean value: True for '1' (Seems Factual or Misleadingly Factual) and False for '0' (Opinion or Clearly Biased).
-        return output_grading["fact_label"] == '1'
+            # Interpret the classification result as a boolean value: True for '1' (Seems Factual or Misleadingly Factual) and False for '0' (Opinion or Clearly Biased).
+            return output_grading["fact_label"] == '1'
+        except Exception as e:
+            logging.error(f"Failed to classify statement: {statement} - {str(e)}")
+            return False
 
     def identify_seemingly_factual(self, text):
         """
@@ -218,7 +224,6 @@ class Contextualizer:
         prompt = get_prompt(date, originator)
 
         try:
-            # tools = get_tools()
             tools = [google_private]
             num_tokens = 0
 
@@ -245,11 +250,12 @@ class Contextualizer:
                 "all_google_results": google_search_tool.all_results,
                 "all_queries": google_search_tool.all_queries,
                 "retrieved_links": google_search_tool.retrieved_links,
-                "retrieved_texts": google_search_tool.retrieved_texts
+                "retrieved_texts": google_search_tool.retrieved_texts,
             }
 
         except Exception as e:
-            print(f"\033[91mFailed Parsing: {statement} - {str(e)}\033[0m")
+            logging.error(f"Failed Parsing: {statement} - {str(e)}")
+            return {"output": "Failed to process the statement."}
 
 
 if __name__ == "__main__":
