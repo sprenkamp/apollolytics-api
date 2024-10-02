@@ -1,12 +1,10 @@
 from langchain.schema import AIMessage, HumanMessage, SystemMessage  # Custom schema definitions for messages
-
 import prompts
 from load_llm import load_llm  # Custom function for loading language models
 import json
 import logging
 
 RANDOM_SEED = 42
-
 
 # Class definition for performing propaganda technique detection using OpenAI's models
 class OpenAITextClassificationPropagandaInference:
