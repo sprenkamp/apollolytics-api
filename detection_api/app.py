@@ -7,8 +7,8 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from starlette.websockets import WebSocketState
-from llm.contextualizer import Contextualizer
-from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
+from contextualizer import Contextualizer
+from propaganda_detection import OpenAITextClassificationPropagandaInference
 import uuid  # Import uuid to generate user ids
 
 # Configure logging
