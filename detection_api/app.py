@@ -7,9 +7,12 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from starlette.websockets import WebSocketState
-from contextualizer import Contextualizer
-from propaganda_detection import OpenAITextClassificationPropagandaInference
-import uuid  # Import uuid to generate user ids
+import uuid  
+
+from llm.contextualizer import Contextualizer
+from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
+from database.postgres import save_request_to_db
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Step 1: Perform propaganda analysis
             analysis_results = await detect_propaganda_async(request)
             logging.info(f"Analysis results: {analysis_results}")
-
+            
             # Step 2: Send the raw propaganda analysis back to the client
             status = analysis_results.pop("status", "error")
             if status == "error":
@@ -124,13 +127,17 @@ async def websocket_endpoint(websocket: WebSocket):
                     "status": "error",
                     "message": str(e)
                 }))
-            await save_request_to_db(
+
+            # Step 4: Save the full response to the database
+            await asyncio.to_thread(
+                save_request_to_db,
                 user_id=user_id,
                 model_name=request.model_name,
                 text=request.text,
-                contextualize=request.contextualize
+                contextualize=request.contextualize,
                 result=analysis_results
             )
+
     except WebSocketDisconnect:
         logging.info("Client disconnected")
     except Exception as e:

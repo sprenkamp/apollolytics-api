@@ -1,6 +1,6 @@
 from langchain.schema import AIMessage, HumanMessage, SystemMessage  # Custom schema definitions for messages
-import prompts
-from load_llm import load_llm  # Custom function for loading language models
+import llm.ressources.prompts as prompts
+from llm.load_llm import load_llm  # Custom function for loading language models
 import json
 import logging
 

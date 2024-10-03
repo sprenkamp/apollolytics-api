@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
+import os
 load_dotenv()
+print("Loading environment variables from .env file")
+print(os.getenv("OPENAI_API_KEY"))
 
 def load_llm(model_name, **kwargs):  # Add **kwargs to accept any arguments
     """
@@ -32,21 +35,3 @@ def load_llm(model_name, **kwargs):  # Add **kwargs to accept any arguments
         raise ValueError(f"Model {model_name} not found")
 
     return llm
-
-if __name__ == "__main__":
-    # Load with default settings
-    llm = load_llm(model_name="gpt-4-turbo-preview")  
-
-    # Load with custom settings
-    llm = load_llm(
-        model_name="gpt-4-turbo-preview",
-        temperature=0,
-        max_tokens=1500,
-        model_kwargs={
-            "top_p": 1,
-            "frequency_penalty": 0.0,
-            "presence_penalty": 0.0,
-        }
-    )
-
-    print(llm.invoke("Hello, how are you?"))
