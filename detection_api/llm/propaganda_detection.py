@@ -1,4 +1,4 @@
-from langchain.schema import AIMessage, HumanMessage, SystemMessage  # Custom schema definitions for messages
+from langchain.schema import HumanMessage, SystemMessage  # Custom schema definitions for messages
 import llm.ressources.prompts as prompts
 from llm.load_llm import load_llm  # Custom function for loading language models
 import json
@@ -91,7 +91,7 @@ class OpenAITextClassificationPropagandaInference:
                         "location": detection["location"].strip().strip('"').strip("'")
                     })
             else:
-                print(f"Unknown technique detected: {technique}")
+                logging.info(f"Unknown technique detected: {technique}")
         return extracted_techniques
 
     def analyze_article(self, input_text: str) -> dict:

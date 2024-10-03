@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 from dotenv import load_dotenv
 import os
 import json
+import logging
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ def ensure_analysis_results_table_exists():
         metadata.create_all(engine)
         print("Table 'analysis_results' created.")
     else:
-        print("Table 'analysis_results' already exists.")
+        return None
 
 # Function to save request to database
 def save_request_to_db(user_id, model_name, text, contextualize, result):
@@ -56,9 +57,9 @@ def save_request_to_db(user_id, model_name, text, contextualize, result):
         query = insert(analysis_results_table).values(new_record)
         session.execute(query)
         session.commit()
-        print(f"Analysis result for user {user_id} saved successfully.")
+        logging.info(f"Analysis result for user {user_id} saved successfully.")
     except SQLAlchemyError as e:
-        print(f"Error saving analysis result: {e}")
+        logging.error(f"Error saving analysis result: {e}")
         session.rollback()
     finally:
         session.close()
@@ -80,7 +81,7 @@ def find_db_items(**filters):
     - find_analysis_results(user_id='1234', model_name='gpt-4o')
     - find_analysis_results()  # Returns the whole table if no filters are applied
     """
-    ensure_analysis_results_table_exists()
+    
     session = SessionLocal()
     try:
         # Start with a select query
