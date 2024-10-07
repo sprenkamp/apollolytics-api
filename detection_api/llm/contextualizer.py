@@ -8,8 +8,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import logging
 
-from load_llm import load_llm  # Custom function for loading language models
-from tqdm import tqdm
+from llm.load_llm import load_llm
 
 # Load environment variables, including API keys for Google and OpenAI.
 load_dotenv()
@@ -17,7 +16,7 @@ GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID", "default_cse_id")
 GOOGLE_APIKEY = os.getenv("GOOGLE_API_KEY", "default_api_key")
 
 # Load excluded URLs from a CSV file
-fake = pd.read_csv("mediabiasfactcheck_fakenews.csv")
+fake = pd.read_csv("llm/ressources/mediabiasfactcheck_fakenews.csv")
 fake = fake[fake["Traffic/Popularity"] != "Minimal Traffic"]
 urls = fake["source_link"].apply(lambda x: x.split("//")[-1].split("www.")[-1].split("/")[0])
 
@@ -257,65 +256,3 @@ class Contextualizer:
             logging.error(f"Failed Parsing: {statement} - {str(e)}")
             return {"output": "Failed to process the statement."}
 
-
-if __name__ == "__main__":
-    contextualizer = Contextualizer(
-        cse_id=GOOGLE_CSE_ID,
-        api_key=GOOGLE_APIKEY,
-        model_name="gpt-3.5-turbo")
-    text = """Tucker Carlson: So, that was eight years before the current conflict started. What was the trigger for you? What was the moment where you decided you had to do this? 
-
-Vladimir Putin: Initially, it was the coup in Ukraine that provoked the conflict.
-
-By the way, back then the representatives of three European countries – Germany, Poland and France – arrived. They were the guarantors of the signed agreement between the Government of Yanukovych and the opposition. They signed it as guarantors. Despite that, the opposition staged a coup and all these countries pretended that they didn’t remember that they were guarantors of a peaceful settlement. They just threw it in the stove right away and nobody recalls that.
-
-I don’t know if the US know anything about that agreement between the opposition and the authorities and its three guarantors who, instead of bringing this whole situation back in the political field, supported the coup. Although, it was meaningless, believe me. Because President Yanukovych agreed to all conditions, he was ready to hold early election which he had no chance to win, frankly speaking. Everyone knew that.
-
-But then why the coup, why the victims? Why threaten Crimea? Why launch an operation in Donbass? This I do not understand. That is exactly what the miscalculation is. The CIA did its job to complete the coup. I think one of the Deputy Secretaries of State said that it cost a large sum of money, almost 5 billion dollars. But the political mistake was colossal! Why would they have to do that? All this could have been done legally, without victims, without military action, without losing Crimea. We would have never considered to even lift a finger if it hadn’t been for the bloody developments on Maidan.
-
-Because we agreed with the fact that after the collapse of the Soviet Union our borders should be along the borders of former Union’s republics. We agreed to that. But we never agreed to NATO’s expansion and moreover we never agreed that Ukraine would be in NATO. We did not agree to NATO bases there without any discussion with us. For decades we kept urging them: don’t do this, don’t do that.
-
-And what triggered the latest events? Firstly, the current Ukrainian leadership declared that it would not implement the Minsk agreements, which had been signed, as you know, after the events of 2014, in Minsk, where the plan of a peaceful settlement in Donbass was set forth. But no, the current Ukrainian leadership, foreign minister, all other officials and then President himself said that they don’t like anything about the Minsk agreements. In other words, they were not going to implement them. A year or a year and a half ago, former leaders of Germany and France said openly to the whole world that they indeed signed the Minsk agreements but they never intended to implement them. They simply led us by the nose.
-
-Tucker Carlson: Was there anyone free to talk to? Did you call the US President, Secretary of State and say if you keep militarizing Ukraine with NATO forces, we are going to act?
-
-Vladimir Putin: We talked about this all the time. We addressed the United States’ and European countries’ leadership to stop these developments immediately, to implement the Minsk agreements. Frankly speaking, I didn’t know how we were going to do this but I was ready to implement them. These agreements were complicated for Ukraine; they included lots of elements of those Donbass territories’ independence. That’s true. However, I was absolutely confident, and I am saying this to you now: I honestly believed that if we managed to convince the residents of Donbass – and we had to work hard to convince them to return to the Ukrainian statehood – then gradually the wounds would start to heal. When this part of territory reintegrated itself into common economic, social environment, when the pensions and social benefits were paid again, all the pieces would gradually fall into place. 
-
-No, nobody wanted that, everybody wanted to resolve the issue by military force only. But we could not let that happen.
-
-And the situation got to the point, when the Ukrainian side announced: “No, we will not implement anything.” They also started preparing for military action. It was they who started the war in 2014. Our goal is to stop this war. And we did not start this war in 2022. This is an attempt to stop it. 
-
-Tucker Carlson: Do you think you have stopped it now? I mean have you achieved your aims? 
-
-Vladimir Putin: No, we haven't achieved our aims yet, because one of them is denazification. This means the prohibition of all kinds of neo-Nazi movements. This is one of the problems that we discussed during the negotiation process, which ended in Istanbul early last year, and it was not our initiative, because we were told (by the Europeans, in particular) that “it was necessary to create conditions for the final signing of the documents.” My counterparts in France and Germany said, “How can you imagine them signing a treaty with a gun to their heads? The troops should be pulled back from Kiev.” I said, “All right.” We withdrew the troops from Kiev. 
-
-As soon as we pulled back our troops from Kiev, our Ukrainian negotiators immediately threw all our agreements reached in Istanbul into the bin and got prepared for a longstanding armed confrontation with the help of the United States and its satellites in Europe. That is how the situation has developed. And that is how it looks now. 
-
-Tucker Carlson: What is denazification? What would that mean? 
-
-Vladimir Putin: That is what I want to talk about right now. It is a very important issue. 
-
-Denazification. After gaining independence, Ukraine began to search, as some Western analysts say, its identity. And it came up with nothing better than to build this identity upon some false heroes who collaborated with Hitler. 
-
-I have already said that in the early 19th century, when the theorists of independence and sovereignty of Ukraine appeared, they assumed that an independent Ukraine should have very good relations with Russia. But due to the historical development, these territories were part of the Polish-Lithuanian Commonwealth – Poland, where Ukrainians were persecuted and treated quite brutally and were subjected to cruel behaviour. There were also attempts to destroy their identity. All this remained in the memory of the people. When World War II broke out, part of this extremely nationalist elite collaborated with Hitler, believing that he would bring them freedom. The German troops, even the SS troops made Hitler's collaborators do the dirtiest work of exterminating the Polish and Jewish population. Hence this brutal massacre of the Polish and Jewish population as well as the Russian population too. This was led by the persons who are well known – Bandera, Shukhevich. It was these people who were made national heroes – that is the problem. And we are constantly told that nationalism and neo-Nazism exist in other countries as well. Yes, there are seedlings, but we uproot them, and other countries fight against them. But Ukraine is not the case. These people have been turned into national heroes in Ukraine. Monuments to these people have been erected, they are displayed on flags, their names are shouted by crowds that walk with torches, as it was in Nazi Germany. These were the people who exterminated Poles, Jews and Russians. It is necessary to stop this practice and prevent the dissemination of this concept.
-
-I say that Ukrainians are part of the one Russian people. They say, “No, we are a separate people.” Okay, fine. If they consider themselves a separate people, they have the right to do so, but not on the basis of Nazism, the Nazi ideology. 
-
-Tucker Carlson: Would you be satisfied with the territory that you have now?
-
-Vladimir Putin: I will finish answering the question. You just asked a question about neo-Nazism and denazification. 
-
-Look, the President of Ukraine visited Canada. This story is well known but is silenced in the Western countries: The Canadian parliament introduced a man who, as the speaker of the parliament said, fought against the Russians during World War II. Well, who fought against the Russians during World War II? Hitler and his accomplices. It turned out that this man served in the SS troops. He personally killed Russians, Poles, and Jews. The SS troops consisted of Ukrainian nationalists who did this dirty work. The President of Ukraine stood up with the entire Parliament of Canada and applauded this man. How can this be imagined? The President of Ukraine himself, by the way, is a Jew by nationality."""
-
-    result = contextualizer.identify_seemingly_factual(text)
-    print(f"Found {len(result)} seemingly factual statements in the text.")
-
-    answer = {}
-    for statement in tqdm(result):
-        process_statement = contextualizer.process_statement(statement)
-        answer[statement] = process_statement["output"]
-
-        print("--------------------")
-        print(statement)
-        print(answer[statement])
-        print("--------------------")

@@ -1,13 +1,15 @@
 # Use an official Python runtime as a parent image
-FROM --platform=linux/amd64 python:3.9-slim
+FROM python:3.9-slim
 
 ARG OPENAI_API_KEY
 ARG GOOGLE_CSE_ID
 ARG GOOLGE_API_KEY
+ARG POSTGRES_URL
 
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 ENV GOOGLE_CSE_ID=${GOOGLE_CSE_ID}
 ENV GOOGLE_API_KEY=${GOOGLE_API_KEY}
+ENV POSTGRES_URL=${POSTGRES_URL}
 
 # Set the working directory inside the container
 WORKDIR /app
