@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
 import os
 load_dotenv()
-print("Loading environment variables from .env file")
-print(os.getenv("OPENAI_API_KEY"))
 
 def load_llm(model_name, **kwargs):  # Add **kwargs to accept any arguments
     """

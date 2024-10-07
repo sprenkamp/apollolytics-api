@@ -11,8 +11,6 @@ load_dotenv()
 
 POSTGRES_URL = os.getenv("POSTGRES_URL")
 
-print(f"Connecting to database at {POSTGRES_URL}")
-
 # Create engine and session
 engine = create_engine(POSTGRES_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
