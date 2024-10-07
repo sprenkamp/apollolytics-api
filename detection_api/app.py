@@ -13,7 +13,6 @@ from llm.contextualizer import Contextualizer
 from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
 from database.postgres import save_request_to_db
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -37,7 +36,7 @@ class Request(BaseModel):
 
 
 # Define a function to process each entry in the analysis results
-async def process_entry(entry, contextualizer, auto=False):
+async def process_entry(entry, contextualizer: Contextualizer, auto=False):
     entry["contextualize_status"] = "success"
 
     try:
