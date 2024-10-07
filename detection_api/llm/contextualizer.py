@@ -250,9 +250,13 @@ class Contextualizer:
                 "all_queries": google_search_tool.all_queries,
                 "retrieved_links": google_search_tool.retrieved_links,
                 "retrieved_texts": google_search_tool.retrieved_texts,
+                "status": "success"
             }
 
         except Exception as e:
-            logging.error(f"Failed Parsing: {statement} - {str(e)}")
-            return {"output": "Failed to process the statement."}
+            logging.error(f"Failed Parsing: {statement} - {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "error": str(e)
+            }
 
