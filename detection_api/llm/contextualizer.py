@@ -8,6 +8,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import logging
 
+from langchain_core.tools import BaseTool
 from llm.load_llm import load_llm
 
 # Load environment variables, including API keys for Google and OpenAI.
@@ -24,6 +25,29 @@ urls = fake["source_link"].apply(lambda x: x.split("//")[-1].split("www.")[-1].s
 def build_query(query, excluded_sites):
     exclusion_query = ' '.join([f'-site:{site}' for site in excluded_sites])
     return f'{query} {exclusion_query}'
+
+
+def render_text_description(tools: list[BaseTool]) -> str:
+    """Render the tool name and description in plain text.
+
+    Args:
+        tools: The tools to render.
+
+    Returns:
+        The rendered text.
+
+    Output will be in the format of:
+
+    .. code-block:: markdown
+
+        search: This tool is used for search
+        calculator: This tool is used for math
+    """
+    descriptions = []
+    for tool in tools:
+        description = f"{tool.name} - {tool.description}"
+        descriptions.append(description)
+    return "\n".join(descriptions)
 
 
 class InformationRetrieval:
@@ -226,7 +250,10 @@ class Contextualizer:
             tools = [google_private]
             num_tokens = 0
 
-            agent = create_react_agent(self.llm, tools, prompt)
+            agent = create_react_agent(self.llm,
+                                       tools,
+                                       prompt,
+                                       tools_renderer=render_text_description)
             agent_executor = AgentExecutor(agent=agent,
                                            tools=tools,
                                            verbose=True,
@@ -238,7 +265,6 @@ class Contextualizer:
 
             for chunk in agent_executor.stream(agent_executor_input):
                 content = chunk["messages"][0].dict()["content"]
-                print(content)
                 num_tokens += len(content)
                 if "output" in chunk:
                     final_answer = chunk["output"]
@@ -250,9 +276,12 @@ class Contextualizer:
                 "all_queries": google_search_tool.all_queries,
                 "retrieved_links": google_search_tool.retrieved_links,
                 "retrieved_texts": google_search_tool.retrieved_texts,
+                "status": "success"
             }
 
         except Exception as e:
-            logging.error(f"Failed Parsing: {statement} - {str(e)}")
-            return {"output": "Failed to process the statement."}
-
+            logging.error(f"Failed Parsing: {statement} - {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "error": str(e)
+            }
