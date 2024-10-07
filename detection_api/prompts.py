@@ -24,13 +24,13 @@ These are the 14 propaganda techniques you will identify, with definitions and e
 
 # Instructions
 For the given article, please identify all occurrences of the 14 propaganda techniques and provide an explanation of why each passage is considered political propaganda.
-Further, return the EXACT passage where the political propaganda can be found.
+Further, return the EXACT passage where the political propaganda can be found. Always return at least a whole sentence.
 If no propaganda technique was identified, return an empty dictionary.
 If a propaganda technique is used multiple times in the article,, all occurrences MUST be identified and explained.
 
 # Output Format
 The output should be valid JSON, with each propaganda technique as a key and a list of occurrences as values.
-Each occurrence should have an explanation and the exact passage in the article where the propaganda technique is present.
+Each occurrence should have an explanation and the exact passage (at least one sentence) in the article where the propaganda technique is present.
 
 ## Example:
 {
