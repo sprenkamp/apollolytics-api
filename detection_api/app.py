@@ -149,7 +149,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     "message": str(e)
                 }))
 
-            # Step 4: Save the full response to the database
+            # Step 4: Close the WebSocket connection after all responses are sent
+            await websocket.close()
+
+            # Step 5: Save the full response to the database
             await asyncio.to_thread(
                 save_request_to_db,
                 user_id=user_id,
