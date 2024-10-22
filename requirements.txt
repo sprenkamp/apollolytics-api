@@ -10,3 +10,4 @@ pandas==2.2.3
 python-dotenv==1.0.1
 SQLAlchemy==2.0.34
 psycopg2-binary==2.9.9
+logfire[fastapi]==1.2.0
