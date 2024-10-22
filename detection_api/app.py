@@ -1,5 +1,7 @@
 import json
 import asyncio
+
+import logfire
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from typing import Literal, Union, Optional
@@ -14,10 +16,13 @@ from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
 from database.postgres import save_request_to_db
 
 # Configure logging
+logfire.configure()
 logging.basicConfig(level=logging.INFO)
+
 
 # Initialize the FastAPI application
 app = FastAPI()
+logfire.instrument_fastapi(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -146,7 +151,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     "user_id": user_id,
                     "type": "contextualization",
                     "status": "error",
-                    "message": str(e)
+                    "message": f"An error occurred during contextualization: {str(e)}"
                 }))
 
             # Step 4: Close the WebSocket connection after all responses are sent
