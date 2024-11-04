@@ -17,8 +17,9 @@ from database.postgres import save_request_to_db
 
 # Configure logging
 logfire.configure()
-logging.basicConfig(level=logging.INFO)
-
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[logfire.LogfireLoggingHandler()])
 
 # Initialize the FastAPI application
 app = FastAPI()
