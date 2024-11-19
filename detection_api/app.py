@@ -1,19 +1,19 @@
-import json
 import asyncio
+import json
+import logging
+import uuid
+from typing import Literal, Union, Optional
 
 import logfire
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel
-from typing import Literal, Union, Optional
 import uvicorn
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-import logging
+from pydantic import BaseModel
 from starlette.websockets import WebSocketState
-import uuid
 
+from database.postgres import save_request_to_db
 from llm.contextualizer import Contextualizer
 from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
-from database.postgres import save_request_to_db
 
 # Configure logging
 logfire.configure()
@@ -96,78 +96,81 @@ async def detect_propaganda_async(request):
     return analysis_results
 
 
+async def handle_request(data, websocket):
+    logging.info(f"Received data: {data}")
+    request = Request.parse_raw(data)
+
+    # Generate or retrieve user_id
+    if request.user_id is None:
+        user_id = str(uuid.uuid4())
+        logging.info(f"Generated new user_id: {user_id}")
+    else:
+        user_id = request.user_id
+        logging.info(f"Using existing user_id: {user_id}")
+
+    # Step 1: Perform propaganda analysis
+    analysis_results = await detect_propaganda_async(request)
+    logging.info(f"Analysis results: {analysis_results}")
+
+    # Step 2: Send the raw propaganda analysis back to the client
+    status = analysis_results.pop("status", "error")
+    if status == "error":
+        await websocket.send_text(json.dumps({
+            "user_id": user_id,
+            "type": "propaganda_detection",
+            "status": "error",
+            "message": analysis_results.get("error", "Unknown error")
+        }))
+        await websocket.close()
+        return
+    else:
+        await websocket.send_text(json.dumps({
+            "user_id": user_id,
+            "type": "propaganda_detection",
+            "status": "success",
+            "data": analysis_results
+        }))
+
+    # Step 3: If contextualization is enabled, process it and send the updated entries
+    try:
+        was_contextualized = await contextualize(request, analysis_results)
+        if was_contextualized:
+            await websocket.send_text(json.dumps({
+                "user_id": user_id,
+                "type": "contextualization",
+                "status": "success",
+                "data": analysis_results
+            }))
+    except Exception as e:
+        logging.error(f"An error occurred during contextualization: {e}", exc_info=True)
+        await websocket.send_text(json.dumps({
+            "user_id": user_id,
+            "type": "contextualization",
+            "status": "error",
+            "message": f"An error occurred during contextualization: {str(e)}"
+        }))
+
+    # Step 4: Close the WebSocket connection after all responses are sent
+    await websocket.close()
+
+    # Step 5: Save the full response to the database
+    await asyncio.to_thread(
+        save_request_to_db,
+        user_id=user_id,
+        model_name=request.model_name,
+        text=request.text,
+        contextualize=request.contextualize,
+        result=analysis_results
+    )
+
+
 @app.websocket("/ws/analyze_propaganda")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     logging.info("WebSocket connection accepted")
     try:
-        while True:
-            data = await websocket.receive_text()
-            logging.info(f"Received data: {data}")
-            request = Request.parse_raw(data)
-
-            # Generate or retrieve user_id
-            if request.user_id is None:
-                user_id = str(uuid.uuid4())
-                logging.info(f"Generated new user_id: {user_id}")
-            else:
-                user_id = request.user_id
-                logging.info(f"Using existing user_id: {user_id}")
-
-            # Step 1: Perform propaganda analysis
-            analysis_results = await detect_propaganda_async(request)
-            logging.info(f"Analysis results: {analysis_results}")
-
-            # Step 2: Send the raw propaganda analysis back to the client
-            status = analysis_results.pop("status", "error")
-            if status == "error":
-                await websocket.send_text(json.dumps({
-                    "user_id": user_id,
-                    "type": "propaganda_detection",
-                    "status": "error",
-                    "message": analysis_results.get("error", "Unknown error")
-                }))
-                continue  # Continue to allow the client to send more messages
-            else:
-                await websocket.send_text(json.dumps({
-                    "user_id": user_id,
-                    "type": "propaganda_detection",
-                    "status": "success",
-                    "data": analysis_results
-                }))
-
-            # Step 3: If contextualization is enabled, process it and send the updated entries
-            try:
-                was_contextualized = await contextualize(request, analysis_results)
-                if was_contextualized:
-                    await websocket.send_text(json.dumps({
-                        "user_id": user_id,
-                        "type": "contextualization",
-                        "status": "success",
-                        "data": analysis_results
-                    }))
-            except Exception as e:
-                logging.error(f"An error occurred during contextualization: {e}", exc_info=True)
-                await websocket.send_text(json.dumps({
-                    "user_id": user_id,
-                    "type": "contextualization",
-                    "status": "error",
-                    "message": f"An error occurred during contextualization: {str(e)}"
-                }))
-
-            # Step 4: Close the WebSocket connection after all responses are sent
-            await websocket.close()
-
-            # Step 5: Save the full response to the database
-            await asyncio.to_thread(
-                save_request_to_db,
-                user_id=user_id,
-                model_name=request.model_name,
-                text=request.text,
-                contextualize=request.contextualize,
-                result=analysis_results
-            )
-
+        data = await websocket.receive_text()
+        await handle_request(data, websocket)
     except WebSocketDisconnect:
         logging.info("Client disconnected")
     except Exception as e:
