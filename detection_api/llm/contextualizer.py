@@ -262,7 +262,8 @@ class Contextualizer:
             if date:
                 agent_executor_input["date"] = date
             start_time = time.time()
-            final_answer = await agent_executor.ainvoke(agent_executor_input)
+            result = await agent_executor.ainvoke(agent_executor_input)
+            final_answer = result["output"]
             logging.info(f"contextualizer took {time.time() - start_time} seconds")
 
             return {
