@@ -7,6 +7,7 @@ import re
 import pandas as pd
 from dotenv import load_dotenv
 import logging
+import time
 
 from langchain_core.tools import BaseTool
 from llm.load_llm import load_llm
@@ -248,27 +249,21 @@ class Contextualizer:
 
         try:
             tools = [google_private]
-            num_tokens = 0
-
             agent = create_react_agent(self.llm,
                                        tools,
                                        prompt,
                                        tools_renderer=render_text_description)
             agent_executor = AgentExecutor(agent=agent,
                                            tools=tools,
-                                           verbose=True,
+                                           verbose=False,
                                            return_intermediate_steps=True,
                                            max_iterations=5)
             agent_executor_input = {"statement": statement}
             if date:
                 agent_executor_input["date"] = date
-
-            for chunk in agent_executor.stream(agent_executor_input):
-                content = chunk["messages"][0].dict()["content"]
-                num_tokens += len(content)
-                if "output" in chunk:
-                    final_answer = chunk["output"]
-            print(f"APPROXIMATE cost: {num_tokens * 0.5 / 10 ** 4:.4f} Cent(s)")
+            start_time = time.time()
+            final_answer = await agent_executor.ainvoke(agent_executor_input)
+            logging.info(f"contextualizer took {time.time() - start_time} seconds")
 
             return {
                 "output": final_answer,

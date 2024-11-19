@@ -3,7 +3,7 @@ import llm.ressources.prompts as prompts
 from llm.load_llm import load_llm  # Custom function for loading language models
 import json
 import logging
-
+import time
 RANDOM_SEED = 42
 
 # Class definition for performing propaganda technique detection using OpenAI's models
@@ -28,7 +28,7 @@ class OpenAITextClassificationPropagandaInference:
                                 "response_format": {"type": "json_object"}
                             })
 
-    def detect_explain(self, input_text: str) -> dict:
+    async def detect_explain(self, input_text: str) -> dict:
         """
         Detects propaganda techniques in the given text and provides explanations for each identified technique.
 
@@ -49,7 +49,9 @@ class OpenAITextClassificationPropagandaInference:
         ]
 
         # Get the model's output given the prompt
-        output = self.llm(prompt)
+        start_time = time.time()
+        output = await self.llm.ainvoke(prompt)
+        logging.info(f"detect_explain took {time.time() - start_time} seconds")
         return json.loads(output.content)
 
     def format_output(self, detections: dict) -> dict:
@@ -94,7 +96,7 @@ class OpenAITextClassificationPropagandaInference:
                 logging.info(f"Unknown technique detected: {technique}")
         return extracted_techniques
 
-    def analyze_article(self, input_text: str) -> dict:
+    async def analyze_article(self, input_text: str) -> dict:
         """
         Analyzes an article for propaganda techniques, combining detection and formatting of results.
 
@@ -106,7 +108,7 @@ class OpenAITextClassificationPropagandaInference:
         """
         try:
             logging.info("Analyzing article for propaganda techniques...")
-            detection_output = self.detect_explain(input_text)
+            detection_output = await self.detect_explain(input_text)
             extracted_techniques_dict = self.format_output(detection_output)
             extracted_techniques_dict["status"] = "success"
             return extracted_techniques_dict
