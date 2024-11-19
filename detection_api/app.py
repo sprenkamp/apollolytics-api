@@ -121,6 +121,7 @@ async def handle_request(data, websocket):
             "status": "error",
             "message": analysis_results.get("error", "Unknown error")
         }))
+        await websocket.close()
         return
     else:
         await websocket.send_text(json.dumps({
