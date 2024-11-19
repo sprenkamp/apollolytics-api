@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-import os
 load_dotenv()
 
 def load_llm(model_name, **kwargs):  # Add **kwargs to accept any arguments

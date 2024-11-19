@@ -6,12 +6,14 @@ from typing import Literal, Union, Optional
 
 import logfire
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.websockets import WebSocketState
 
-from database.postgres import save_request_to_db
+from detection_api import dependencies
+from detection_api.database import AnalysisResult
+from detection_api.database.repo import Repo
 from llm.contextualizer import Contextualizer
 from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
 
@@ -96,7 +98,7 @@ async def detect_propaganda_async(request):
     return analysis_results
 
 
-async def handle_request(data, websocket):
+async def handle_request(data, websocket, repo):
     logging.info(f"Received data: {data}")
     request = Request.parse_raw(data)
 
@@ -154,23 +156,24 @@ async def handle_request(data, websocket):
     await websocket.close()
 
     # Step 5: Save the full response to the database
-    await asyncio.to_thread(
-        save_request_to_db,
+    analysis_result = AnalysisResult(
         user_id=user_id,
         model_name=request.model_name,
         text=request.text,
         contextualize=request.contextualize,
-        result=analysis_results
+        result=json.dumps(analysis_results)
     )
+    repo.create(analysis_result)
 
 
 @app.websocket("/ws/analyze_propaganda")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket,
+                             repo: Repo = Depends(dependencies.repo)):
     await websocket.accept()
     logging.info("WebSocket connection accepted")
     try:
         data = await websocket.receive_text()
-        await handle_request(data, websocket)
+        await handle_request(data, websocket, repo)
     except WebSocketDisconnect:
         logging.info("Client disconnected")
     except Exception as e:
