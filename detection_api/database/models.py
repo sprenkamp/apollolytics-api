@@ -11,3 +11,13 @@ class AnalysisResult(Base):
     text = Column(Text)
     contextualize = Column(String)
     result = Column(Text)  # Store the result as a JSON string
+
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'request_time': self.request_time,
+            'model_name': self.model_name,
+            'text': self.text,
+            'contextualize': self.contextualize,
+            'result': self.result
+        }

@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from detection_api.database import AnalysisResult
@@ -26,3 +27,11 @@ class Repo:
         self.db.delete(db_obj)
         self.db.commit()
 
+    def find_analysis_results(self):
+        stmt = (
+            select(AnalysisResult)
+        )
+
+        results = self.db.execute(stmt).all()
+
+        return [result[0] for result in results]
