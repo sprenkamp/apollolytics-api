@@ -30,4 +30,5 @@ EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
 
 # Command to run the FastAPI application with Uvicorn
-CMD ["alembic", "upgrade", "head", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "5", "--timeout-keep-alive", "1000"]
+CMD /bin/sh -c "alembic upgrade head && uvicorn app:app --host 0.0.0.0 --port 8000 --workers 5 --timeout-keep-alive 1000"
+
