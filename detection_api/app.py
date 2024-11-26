@@ -99,71 +99,75 @@ async def detect_propaganda_async(request):
 
 
 async def handle_request(data, websocket, repo):
-    logging.info(f"Received data: {data}")
     request = Request.parse_raw(data)
+    with logfire.span("handle_request user_id={user_id} model_name={model_name} contextualize={contextualize}",
+                      user_id=request.user_id,
+                      model_name=request.model_name,
+                      contextualize=request.contextualize):
+        logging.info(f"Received data: {data}")
 
-    # Generate or retrieve user_id
-    if request.user_id is None:
-        user_id = str(uuid.uuid4())
-        logging.info(f"Generated new user_id: {user_id}")
-    else:
-        user_id = request.user_id
-        logging.info(f"Using existing user_id: {user_id}")
+        # Generate or retrieve user_id
+        if request.user_id is None:
+            user_id = str(uuid.uuid4())
+            logging.info(f"Generated new user_id: {user_id}")
+        else:
+            user_id = request.user_id
+            logging.info(f"Using existing user_id: {user_id}")
 
-    # Step 1: Perform propaganda analysis
-    analysis_results = await detect_propaganda_async(request)
-    logging.info(f"Analysis results: {analysis_results}")
+        # Step 1: Perform propaganda analysis
+        analysis_results = await detect_propaganda_async(request)
+        logging.info(f"Analysis results: {analysis_results}")
 
-    # Step 2: Send the raw propaganda analysis back to the client
-    status = analysis_results.pop("status", "error")
-    if status == "error":
-        await websocket.send_text(json.dumps({
-            "user_id": user_id,
-            "type": "propaganda_detection",
-            "status": "error",
-            "message": analysis_results.get("error", "Unknown error")
-        }))
-        await websocket.close()
-        return
-    else:
-        await websocket.send_text(json.dumps({
-            "user_id": user_id,
-            "type": "propaganda_detection",
-            "status": "success",
-            "data": analysis_results
-        }))
-
-    # Step 3: If contextualization is enabled, process it and send the updated entries
-    try:
-        was_contextualized = await contextualize(request, analysis_results)
-        if was_contextualized:
+        # Step 2: Send the raw propaganda analysis back to the client
+        status = analysis_results.pop("status", "error")
+        if status == "error":
             await websocket.send_text(json.dumps({
                 "user_id": user_id,
-                "type": "contextualization",
+                "type": "propaganda_detection",
+                "status": "error",
+                "message": analysis_results.get("error", "Unknown error")
+            }))
+            await websocket.close()
+            return
+        else:
+            await websocket.send_text(json.dumps({
+                "user_id": user_id,
+                "type": "propaganda_detection",
                 "status": "success",
                 "data": analysis_results
             }))
-    except Exception as e:
-        logging.error(f"An error occurred during contextualization: {e}", exc_info=True)
-        await websocket.send_text(json.dumps({
-            "user_id": user_id,
-            "type": "contextualization",
-            "status": "error",
-            "message": f"An error occurred during contextualization: {str(e)}"
-        }))
 
-    # Step 4: Close the WebSocket connection after all responses are sent
-    await websocket.close()
+        # Step 3: If contextualization is enabled, process it and send the updated entries
+        try:
+            was_contextualized = await contextualize(request, analysis_results)
+            if was_contextualized:
+                await websocket.send_text(json.dumps({
+                    "user_id": user_id,
+                    "type": "contextualization",
+                    "status": "success",
+                    "data": analysis_results
+                }))
+        except Exception as e:
+            logging.error(f"An error occurred during contextualization: {e}", exc_info=True)
+            await websocket.send_text(json.dumps({
+                "user_id": user_id,
+                "type": "contextualization",
+                "status": "error",
+                "message": f"An error occurred during contextualization: {str(e)}"
+            }))
 
-    # Step 5: Save the full response to the database
-    analysis_result = AnalysisResult(
-        user_id=user_id,
-        model_name=request.model_name,
-        text=request.text,
-        contextualize=request.contextualize,
-        result=json.dumps(analysis_results)
-    )
-    repo.create(analysis_result)
+        # Step 4: Close the WebSocket connection after all responses are sent
+        await websocket.close()
+
+        # Step 5: Save the full response to the database
+        analysis_result = AnalysisResult(
+            user_id=user_id,
+            model_name=request.model_name,
+            text=request.text,
+            contextualize=request.contextualize,
+            result=json.dumps(analysis_results)
+        )
+        repo.create(analysis_result)
 
 
 @app.websocket("/ws/analyze_propaganda")
