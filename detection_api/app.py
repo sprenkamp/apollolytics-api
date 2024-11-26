@@ -92,7 +92,7 @@ async def contextualize(request, analysis_results):
 # Define the main route for the FastAPI application
 async def detect_propaganda_async(request):
     inference_class = OpenAITextClassificationPropagandaInference(model_name=request.model_name)
-    analysis_results = await asyncio.to_thread(inference_class.analyze_article, input_text=request.text)
+    analysis_results = await inference_class.analyze_article(request.text)
     return analysis_results
 
 
