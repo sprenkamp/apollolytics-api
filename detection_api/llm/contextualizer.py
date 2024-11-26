@@ -46,7 +46,7 @@ def render_text_description(tools: list[BaseTool]) -> str:
     """
     descriptions = []
     for tool in tools:
-        description = f"{tool.name} - {tool.description}"
+        description = f"<tool>\n{tool.name}:\n{tool.description}\n</tool>"
         descriptions.append(description)
     return "\n".join(descriptions)
 
@@ -64,7 +64,7 @@ class InformationRetrieval:
         self.retrieved_texts = []
 
     def format_google(self, google_res):
-        max_link_length = 100
+        max_link_length = 200
         formatted_res = []
         for idx, res in enumerate(google_res):
             link = res.get("link", "")
@@ -125,23 +125,47 @@ google_description = """Get previews of the top google search results to get mor
 def get_prompt(date, originator):
     prompt = hub.pull("hwchase17/react")
 
-    prompt_template = """You are an Assistant tasked to contextualise potentially misleading statements to make sure users are safe and well informed. You have access to the following tools:\n{tools}\nDo not use any tool more than three times. Use the following format:\n\nQuestion: the input question you must answer\nThought: you should always think about what to do\nAction: the action to take, should be one of [{tool_names}]\nAction Input: the input to the action\nObservation: the result of the action\n... (this Thought/Action/Action Input/Observation can repeat 3 times)\nThought: I now have sufficient information to provide context for the user.\nFinal Answer: The context demanded by the user.\n\n
-        **Final Response Format:**
-        - **Facts:** (Simplified, factual summary with sources)
-        - **Misinformation Explanation:** (Detailed reasoning)
-        - **Warning:** (Specific risks of misinformation)
-        - **Sources:** (List all important sources with hyperlinks)
-    
-        **Example Final Answer:**
-        Facts: Electric vehicles are generally less harmful to the environment over their lifetime than gasoline cars, though they do have a high environmental cost at the production stage.
-        Warn: Misleading statements may ignore the full lifecycle impacts.
-        Explain: Comparing only the production impacts oversimplifies the broader environmental considerations.
-        Sources: 
-        - [EPA](https://www.epa.gov/greenvehicles/electric-vehicle-myths)
-        - [MIT Climate Portal](https://climate.mit.edu/ask-mit/are-electric-vehicles-definitely-better-climate-gas-powered-cars)
-        - [NY Post](https://nypost.com/2024/03/05/business/evs-release-more-toxic-emissions-are-worse-for-the-environment-study/)
-        \nBegin!\n\nQuestion: Contextualise the statement: '{statement}'{originator_section}{date_section}\nThought:{agent_scratchpad}"""
+    prompt_template = """You are an expert contextualizer tasked to expanding and enriching understanding around potentially misleading statements to make sure users are safe and well informed.
+Your role is to provide balanced, accurate, concise, and helpful context about a given statement.
 
+You have access to the following tools for your research:
+<tools>
+{tools}
+</tools>
+
+You may use each tool up to three times.
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat 3 times)
+Thought: I now have sufficient information to provide context for the user.
+Final Answer: The context demanded by the user.
+
+
+**Final Response Format:**
+- **Facts:** (Provide a precise, concise, and factual summary of the topic, incorporating context from the sources)
+- **Warning:** (Explain potential risks of misinformation precisely, including how the statement might be misleading and what important context it might be missing)
+- **Sources:** (List all important sources with hyperlinks)
+
+**Example Final Answer:**
+Facts: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction.
+Warn: Statements claiming that EVs are "worse for the environment" may focus exclusively on production emissions, ignoring the substantial operational emissions savings during usage. Conversely, claims that EVs are "entirely green" may overlook the environmental impacts of mining lithium, cobalt, and other materials used in battery production.
+Explain: Lifecycle analyses show that while EVs have a higher environmental cost upfront, the emissions saved during their operational life typically outweigh this. However, the overall benefit depends on the electricity source used to charge the vehicle. In regions heavily reliant on fossil fuels for electricity, the emissions savings can be significantly lower. It's important to contextualize the discussion of EVs in terms of both local energy infrastructure and improvements in battery recycling technologies.
+Sources: 
+- [EPA](https://www.epa.gov/greenvehicles/electric-vehicle-myths)
+- [MIT Climate Portal](https://climate.mit.edu/ask-mit/are-electric-vehicles-definitely-better-climate-gas-powered-cars)
+- [NY Post](https://nypost.com/2024/03/05/business/evs-release-more-toxic-emissions-are-worse-for-the-environment-study/)
+    
+Begin your analysis now!
+
+Question:
+Contextualise the statement: '{statement}'{originator_section}{date_section}
+Thought:{agent_scratchpad}"""
     date_section = ""
     originator_section = ""
     if date:
@@ -158,7 +182,7 @@ def get_prompt(date, originator):
 class Contextualizer:
     def __init__(self, model_name, cse_id=GOOGLE_CSE_ID, api_key=GOOGLE_APIKEY):
         self.llm = load_llm(model_name,
-                            max_tokens=2000,
+                            max_tokens=4096,
                             temperature=0,
                             streaming=True)
 
