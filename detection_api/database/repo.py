@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from detection_api.database import AnalysisResult
+from database import AnalysisResult
 
 
 class Repo:

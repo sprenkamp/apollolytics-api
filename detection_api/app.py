@@ -11,9 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.websockets import WebSocketState
 
-from detection_api import dependencies
-from detection_api.database import AnalysisResult
-from detection_api.database.repo import Repo
+import dependencies
+from database import AnalysisResult
+from database.repo import Repo
 from llm.contextualizer import Contextualizer
 from llm.propaganda_detection import OpenAITextClassificationPropagandaInference
 

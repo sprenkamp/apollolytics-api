@@ -3,8 +3,8 @@ from typing import Generator
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from detection_api.database.postgres import SessionLocal
-from detection_api.database.repo import Repo
+from database.postgres import SessionLocal
+from database.repo import Repo
 
 
 def get_db() -> Generator:
