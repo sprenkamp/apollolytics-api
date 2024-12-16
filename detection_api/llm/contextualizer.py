@@ -148,14 +148,13 @@ Final Answer: The context demanded by the user.
 
 
 **Final Response Format:**
-- **Facts:** (Provide a precise, concise, and factual summary of the topic, incorporating context from the sources)
+- **Context:** (Provide a precise, concise, and factual summary of the topic, incorporating context from the sources)
 - **Warning:** (Explain potential risks of misinformation precisely, including how the statement might be misleading and what important context it might be missing)
 - **Sources:** (List all important sources with hyperlinks)
 
-**Example Final Answer:**
-Facts: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction.
-Warn: Statements claiming that EVs are "worse for the environment" may focus exclusively on production emissions, ignoring the substantial operational emissions savings during usage. Conversely, claims that EVs are "entirely green" may overlook the environmental impacts of mining lithium, cobalt, and other materials used in battery production.
-Explain: Lifecycle analyses show that while EVs have a higher environmental cost upfront, the emissions saved during their operational life typically outweigh this. However, the overall benefit depends on the electricity source used to charge the vehicle. In regions heavily reliant on fossil fuels for electricity, the emissions savings can be significantly lower. It's important to contextualize the discussion of EVs in terms of both local energy infrastructure and improvements in battery recycling technologies.
+**Example Final Answer:**  
+Context: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction.
+Warning: Statements claiming that EVs are "worse for the environment" may focus exclusively on production emissions, ignoring the substantial operational emissions savings during usage. Conversely, claims that EVs are "entirely green" may overlook the environmental impacts of mining lithium, cobalt, and other materials used in battery production.
 Sources: 
 - [EPA](https://www.epa.gov/greenvehicles/electric-vehicle-myths)
 - [MIT Climate Portal](https://climate.mit.edu/ask-mit/are-electric-vehicles-definitely-better-climate-gas-powered-cars)
