@@ -10,12 +10,70 @@ Your task is to carefully analyze the given article and identify any of the **6 
 - Only classify a passage as propaganda if it supports or critiques a political or ideological position.
 
 ## Coarse-Grained Propaganda Techniques
-1. [Attack on Reputation]: Involves questioning or undermining the reputation of an individual, group, or idea. This includes techniques such as Name Calling, Guilt by Association, Casting Doubt, Appeal to Hypocrisy, and Questioning Reputation.
-2. [Justification]: Uses arguments to legitimize an idea or action by appealing to authority, popularity, values, fear, prejudice, or pride (e.g., Flag Waiving).
-3. [Distraction]: Diverts attention from the main topic by introducing irrelevant topics or fallacious arguments, such as Strawman, Red Herring, or Whataboutism.
-4. [Simplification]: Reduces complex issues to overly simple terms, such as presenting False Dilemmas, Causal Oversimplifications, or Consequential Oversimplifications.
-5. [Call to Action]: Includes slogans, conversation killers, or appeals to urgency or time to prompt immediate audience action.
-6. [Manipulative Wording]: Employs emotionally charged language, vagueness, exaggeration, minimization, or repetition to influence opinions.
+1. [Attack on Reputation]:  
+   This category focuses on damaging the credibility, moral character, or trustworthiness of a target—be it an individual, group, or idea—rather than addressing the actual content of their arguments or policies.  
+   **Includes Fine-Grained Techniques**: Name Calling or Labeling, Guilt by Association, Casting Doubt, Appeal to Hypocrisy, Questioning the Reputation.  
+   - Description:  
+     By employing labels the audience finds negative or positive, linking the target to despised groups, casting doubt on their integrity, calling them hypocrites, or otherwise questioning their reputation, the propagandist aims to persuade without engaging with the underlying merits of an issue.  
+   - Examples:  
+     - *Name Calling/Labeling*: "That senator is a spineless traitor."
+     - *Guilt by Association*: "They support the same group as known terrorists."
+     - *Casting Doubt*: "Can we really trust him after what happened last year?"
+     - *Appeal to Hypocrisy*: "They criticize spending, yet they approved lavish spending themselves."
+     - *Questioning the Reputation*: "This organization has always been run by scoundrels."
+
+2. [Justification]:  
+   These techniques try to legitimize or validate an idea, policy, or action by appealing to authorities, shared values, popularity, fear, prejudice, or pride.  
+   **Includes Fine-Grained Techniques**: Flag Waving, Appeal to Authority, Appeal to Popularity, Appeal to Values, Appeal to Fear/Prejudice.  
+   - Description:  
+     Instead of relying purely on logical reasoning, these methods use influential figures (appeal to authority), claim widespread agreement (appeal to popularity), link ideas to cherished beliefs (appeal to values), invoke pride in one’s nation or group (flag waving), or play on anxieties and stereotypes (appeal to fear/prejudice) to persuade.  
+   - Examples:  
+     - *Flag Waving*: "Supporting this policy shows you are a true patriot."
+     - *Appeal to Authority*: "Experts from the Institute say our leader is always right."
+     - *Appeal to Popularity*: "Everyone agrees that this candidate is the best choice."
+     - *Appeal to Values*: "Our party stands for freedom and family values."
+     - *Appeal to Fear/Prejudice*: "If we let them in, they will ruin our way of life."
+
+3. [Distraction]:  
+   Distraction techniques shift attention away from the main issue, often by misrepresenting an opponent’s argument, introducing irrelevant topics, or accusing hypocrisy without tackling the original claim.  
+   **Includes Fine-Grained Techniques**: Strawman, Red Herring, Whataboutism.  
+   - Description:  
+     By creating a distorted version of the opponent’s position (strawman), changing the subject to something unrelated (red herring), or focusing on the opponent’s alleged inconsistencies rather than their arguments (whataboutism), these approaches prevent constructive debate and critical examination of the real issues.  
+   - Examples:  
+     - *Strawman*: "They say they want better healthcare, but really they just want to bankrupt our economy."
+     - *Red Herring*: "Instead of discussing the budget, let’s talk about the mayor’s personal life."
+     - *Whataboutism*: "You criticize our spending, but what about your spending last year?"
+
+4. [Simplification]:  
+   These methods boil down complex situations into overly simple narratives, ignoring nuances, multiple causes, or potential outcomes.  
+   **Includes Fine-Grained Techniques**: Causal Oversimplification, False Dilemma or No Choice, Consequential Oversimplification.  
+   - Description:  
+     By attributing a multifaceted problem to a single cause (causal oversimplification), framing the debate as only two possible options (false dilemma), or predicting a chain of dubious consequences (consequential oversimplification), these tactics discourage in-depth understanding and nuanced thinking.  
+   - Examples:  
+     - *Causal Oversimplification*: "Crime is high only because we allowed immigration."
+     - *False Dilemma*: "You’re either with our party or you hate our country."
+     - *Consequential Oversimplification*: "If we pass this law, next we’ll lose all our freedoms."
+
+5. [Call to Action]:  
+   These techniques push the audience toward immediate action or compliance without encouraging critical thought.  
+   **Includes Fine-Grained Techniques**: Slogans, Conversation Killer, Appeal to Time.  
+   - Description:  
+     They rely on catchy phrases (slogans), discourage further debate (conversation killers), or invoke urgency (appeal to time) to mobilize supporters and silence dissent, rather than allowing a careful examination of the issues.  
+   - Examples:  
+     - *Slogans*: "Make our nation pure again!"
+     - *Conversation Killer*: "It is what it is—no need to argue."
+     - *Appeal to Time*: "Now is the moment, we can’t wait any longer!"
+
+6. [Manipulative Wording]:  
+   This category focuses on using language tricks to influence opinions and emotions rather than presenting solid evidence or logical reasoning.  
+   **Includes Fine-Grained Techniques**: Loaded Language, Obfuscation/Intentional Vagueness/Confusion, Exaggeration or Minimisation, Repetition.  
+   - Description:  
+     By employing emotionally charged terms (loaded language), vague or confusing phrasing (obfuscation), exaggerating or downplaying certain aspects, or simply repeating certain points, the speaker aims to shape perceptions subtly and win sympathy or hostility without genuine argumentation.  
+   - Examples:  
+     - *Loaded Language*: "The corrupt regime is poisoning our children’s minds."
+     - *Obfuscation*: "Our solution addresses future-oriented variable alignments."
+     - *Exaggeration or Minimisation*: "This minor policy tweak will solve all our economic problems!"
+     - *Repetition*: "Our leader is wise, strong, and decisive—wise, strong, and decisive."
 
 # Instructions
 1. Analyze the text for occurrences of the 6 coarse-grained propaganda techniques.  
