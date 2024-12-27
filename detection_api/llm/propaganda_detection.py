@@ -84,16 +84,16 @@ class OpenAITextClassificationPropagandaInference:
             "Doubt"
         ]
         for technique in detections.keys():
-            if technique in propaganda_techniques:
-                if technique not in extracted_techniques:
-                    extracted_techniques[technique] = []
-                for detection in detections[technique]:
-                    extracted_techniques[technique].append({
-                        f"explanation": detection["explanation"],
-                        "location": detection["location"].strip().strip('"').strip("'")
-                    })
-            else:
-                logging.info(f"Unknown technique detected: {technique}")
+            #if technique in propaganda_techniques:
+            if technique not in extracted_techniques:
+                extracted_techniques[technique] = []
+            for detection in detections[technique]:
+                extracted_techniques[technique].append({
+                    f"explanation": detection["explanation"],
+                    "location": detection["location"].strip().strip('"').strip("'")
+                })
+            #else:
+            #    logging.info(f"Unknown technique detected: {technique}")
         return extracted_techniques
 
     async def analyze_article(self, input_text: str) -> dict:
