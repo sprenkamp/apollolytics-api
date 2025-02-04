@@ -1,16 +1,16 @@
 import logging
 import os
-import re
 import time
 
 import pandas as pd
 from dotenv import load_dotenv
-from googleapiclient.discovery import build
 from langchain import hub
 from langchain.agents import Tool
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.tools import BaseTool
 from llm.load_llm import load_llm
+
+from detection_api.llm.google_retriever import InformationRetrieval
 
 # Load environment variables, including API keys for Google and OpenAI.
 load_dotenv()
@@ -20,12 +20,7 @@ GOOGLE_APIKEY = os.getenv("GOOGLE_API_KEY", "default_api_key")
 # Load excluded URLs from a CSV file
 fake = pd.read_csv("llm/ressources/mediabiasfactcheck_fakenews.csv")
 fake = fake[fake["Traffic/Popularity"] != "Minimal Traffic"]
-urls = fake["source_link"].apply(lambda x: x.split("//")[-1].split("www.")[-1].split("/")[0])
-
-
-def build_query(query, excluded_sites):
-    exclusion_query = ' '.join([f'-site:{site}' for site in excluded_sites])
-    return f'{query} {exclusion_query}'
+excluded_sites = fake["source_link"].apply(lambda x: x.split("//")[-1].split("www.")[-1].split("/")[0])
 
 
 def render_text_description(tools: list[BaseTool]) -> str:
@@ -49,77 +44,6 @@ def render_text_description(tools: list[BaseTool]) -> str:
         description = f"<tool>\n{tool.name}:\n{tool.description}\n</tool>"
         descriptions.append(description)
     return "\n".join(descriptions)
-
-
-class InformationRetrieval:
-    def __init__(self, cse_id, api_key, num_results=10):
-        self.cse_id = cse_id
-        self.api_key = api_key
-        self.num_results = num_results
-        self.start = 0
-        self.last_request = ""
-        self.all_results = {}
-        self.all_queries = []
-        self.retrieved_links = []
-        self.retrieved_texts = []
-
-    def format_google(self, google_res):
-        max_link_length = 1000
-        formatted_res = []
-        for idx, res in enumerate(google_res):
-            link = res.get("link", "")
-            link_len = len(link)
-            if link_len > max_link_length:
-                print(f"Attention: Link length of {link_len} exceeds maximum of {max_link_length} characters.")
-                link = link[:max_link_length] + "..."
-            title = res.get("title", "")
-            snippet = res.get("snippet", "")
-            metatags = res.get("pagemap", {}).get("metatags", [{}])
-            published_time = metatags[0].get("article:published_time", None)
-
-            if published_time:
-                published_time = published_time.split("T")[0]
-                try:
-                    published_time = pd.to_datetime(published_time).strftime('%Y-%b')
-                except:
-                    published_time = "NO DATE"
-
-            title = re.sub('\.+', '.', title)
-            title = re.sub(' +', ' ', title)
-            snippet = re.sub('\.+', '.', snippet)
-            snippet = re.sub(' +', ' ', snippet)
-
-            formatted_entry = f"{0 + idx + 1}. {link} ({published_time}): {title}. {snippet}.\n"
-            formatted_res.append(formatted_entry)
-        if len(formatted_res) == 0:
-            logging.warning("No relevant information found.")
-            return "No relevant information found."
-        return "".join(formatted_res)
-
-    def search(self, query):
-        try:
-            for i in range(3):
-                if self.last_request != query:
-                    self.start = 0
-                    self.all_queries.append(query)
-                    self.last_request = query
-
-                service = build("customsearch", "v1", developerKey=self.api_key)
-                response = service.cse().list(q=build_query(query, excluded_sites=urls), cx=self.cse_id,
-                                              num=self.num_results, start=self.start).execute()
-                results = response['items']
-
-                self.start += len(results)
-                if query in self.all_results:
-                    self.all_results[query] += results
-                else:
-                    self.all_results[query] = results
-
-            return self.format_google(self.all_results[query])
-        except Exception as e:
-            print(e)
-            logging.warning("Some error occurred during the search.")
-            return "No relevant information found."
 
 
 google_description = """Get previews of the top google search results to get more information about the statement. The function always returns the next 10 results and can be called multiple times. If initial results seem unrelated you may use quotation marks to search for an exact phrase. Use a minus sign to exclude a word from the search.  Use before:date and after:date to search for results within a specific time period. Do not google the entire statement verbatim."""
@@ -268,7 +192,10 @@ class Contextualizer:
         :return: A dictionary containing processed information, including search results and analysis from the language model.
         """
 
-        google_search_tool = InformationRetrieval(cse_id=GOOGLE_CSE_ID, api_key=GOOGLE_APIKEY, num_results=10)
+        google_search_tool = InformationRetrieval(cse_id=GOOGLE_CSE_ID,
+                                                  api_key=GOOGLE_APIKEY,
+                                                  excluded_sites=excluded_sites,
+                                                  num_results=10)
 
         google_private = Tool(
             name='Google',
