@@ -73,11 +73,10 @@ Observation: the result of the action
 Thought: I now have sufficient information to provide context for the user.
 Final Answer: The context demanded by the user.
 
-
 **Final Response Format:**
 - **Context:** (Provide a precise, concise, and factual summary of the topic, incorporating context from the sources)
 - **Warning:** (Explain potential risks of misinformation precisely, including how the statement might be misleading and what important context it might be missing)
-- **Sources:** (List all important sources with hyperlinks)
+- **Sources:** (List all important sources by their reference numbers, e.g., [1], [2], [3])
 
 **Example Final Answer in case no results are found:**
 Context: No relevant information found.
@@ -85,12 +84,12 @@ Warning: The statement may not be widely discussed or may not have been indexed 
 Sources: None
 
 **Example Final Answer:**  
-Context: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction.
+Context: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars, according to studies [1], [2]. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction [3].
 Warning: Statements claiming that EVs are "worse for the environment" may focus exclusively on production emissions, ignoring the substantial operational emissions savings during usage. Conversely, claims that EVs are "entirely green" may overlook the environmental impacts of mining lithium, cobalt, and other materials used in battery production.
 Sources: 
-- [EPA](https://www.epa.gov/greenvehicles/electric-vehicle-myths)
-- [MIT Climate Portal](https://climate.mit.edu/ask-mit/are-electric-vehicles-definitely-better-climate-gas-powered-cars)
-- [NY Post](https://nypost.com/2024/03/05/business/evs-release-more-toxic-emissions-are-worse-for-the-environment-study/)
+- [1] EPA Report on Electric Vehicle Myths (2023-Aug)
+- [2] MIT Climate Portal Analysis (2024-Jan)
+- [3] Environmental Impact Study (2023-Dec)
     
 Begin your analysis now!
 
@@ -222,6 +221,42 @@ class Contextualizer:
             start_time = time.time()
             result = await agent_executor.ainvoke(agent_executor_input)
             final_answer = result["output"]
+
+            # Get the link mapping from the search tool
+            link_mapping = google_search_tool.get_link_mapping()
+
+            # Split the answer into sections
+            sections = final_answer.split("Sources:")
+            if len(sections) == 2:
+                main_content, sources_section = sections
+
+                # Find all referenced numbers in the entire text
+                import re
+                all_refs = set(int(num) for num in re.findall(r'\[(\d+)\]', final_answer))
+
+                # Create new mapping with sequential numbers
+                new_mapping = {}
+                old_to_new = {}
+                new_index = 1
+
+                # First pass: create mapping for used references only
+                for old_num in sorted(all_refs):
+                    if old_num in link_mapping:
+                        old_to_new[old_num] = new_index
+                        new_mapping[new_index] = link_mapping[old_num]
+                        new_index += 1
+
+                # Replace numbers in main content
+                for old_num, new_num in old_to_new.items():
+                    main_content = main_content.replace(f'[{old_num}]', f'[{new_num}]')
+                    sources_section = sources_section.replace(f'[{old_num}]', f'[{new_num}]({new_mapping[new_num]})')
+
+                # Reconstruct the final answer
+                final_answer = main_content + "Sources:" + sources_section
+
+                # Update link_mapping to only include used references with new numbers
+                link_mapping = new_mapping
+
             logging.info(f"contextualizer took {time.time() - start_time} seconds")
 
             return {
@@ -230,6 +265,7 @@ class Contextualizer:
                 "all_queries": google_search_tool.all_queries,
                 "retrieved_links": google_search_tool.retrieved_links,
                 "retrieved_texts": google_search_tool.retrieved_texts,
+                # "link_mapping": link_mapping,  # Add the link mapping to the output
                 "status": "success"
             }
 
