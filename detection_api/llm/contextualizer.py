@@ -229,33 +229,36 @@ class Contextualizer:
             sections = final_answer.split("Sources:")
             if len(sections) == 2:
                 main_content, sources_section = sections
+                if len(sources_section) > 10:
+                    # Find all referenced numbers in the entire text
+                    import re
+                    all_refs = set(int(num) for num in re.findall(r'\[(\d+)\]', final_answer))
 
-                # Find all referenced numbers in the entire text
-                import re
-                all_refs = set(int(num) for num in re.findall(r'\[(\d+)\]', final_answer))
+                    # Create new mapping with sequential numbers
+                    new_mapping = {}
+                    old_to_new = {}
+                    new_index = 1
 
-                # Create new mapping with sequential numbers
-                new_mapping = {}
-                old_to_new = {}
-                new_index = 1
+                    # First pass: create mapping for used references only
+                    for old_num in sorted(all_refs):
+                        if old_num in link_mapping:
+                            old_to_new[old_num] = new_index
+                            new_mapping[new_index] = link_mapping[old_num]
+                            new_index += 1
 
-                # First pass: create mapping for used references only
-                for old_num in sorted(all_refs):
-                    if old_num in link_mapping:
-                        old_to_new[old_num] = new_index
-                        new_mapping[new_index] = link_mapping[old_num]
-                        new_index += 1
+                    # Replace numbers in main content
+                    for old_num, new_num in old_to_new.items():
+                        main_content = main_content.replace(f'[{old_num}]', f'[{new_num}]')
+                        sources_section = sources_section.replace(f'[{old_num}]',
+                                                                  f'[{new_num}]({new_mapping[new_num]})')
 
-                # Replace numbers in main content
-                for old_num, new_num in old_to_new.items():
-                    main_content = main_content.replace(f'[{old_num}]', f'[{new_num}]')
-                    sources_section = sources_section.replace(f'[{old_num}]', f'[{new_num}]({new_mapping[new_num]})')
+                    # Reconstruct the final answer
+                    final_answer = main_content + "Sources:" + sources_section
 
-                # Reconstruct the final answer
-                final_answer = main_content + "Sources:" + sources_section
-
-                # Update link_mapping to only include used references with new numbers
-                link_mapping = new_mapping
+                    # Update link_mapping to only include used references with new numbers
+                    link_mapping = new_mapping
+                else:
+                    final_answer = "No relevant information found."
 
             logging.info(f"contextualizer took {time.time() - start_time} seconds")
 
