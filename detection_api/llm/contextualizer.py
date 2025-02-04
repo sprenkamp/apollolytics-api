@@ -1,14 +1,14 @@
-import os
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain.agents import Tool
-from langchain import hub
-from googleapiclient.discovery import build
-import re
-import pandas as pd
-from dotenv import load_dotenv
 import logging
+import os
+import re
 import time
 
+import pandas as pd
+from dotenv import load_dotenv
+from googleapiclient.discovery import build
+from langchain import hub
+from langchain.agents import Tool
+from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.tools import BaseTool
 from llm.load_llm import load_llm
 
@@ -64,7 +64,7 @@ class InformationRetrieval:
         self.retrieved_texts = []
 
     def format_google(self, google_res):
-        max_link_length = 200
+        max_link_length = 1000
         formatted_res = []
         for idx, res in enumerate(google_res):
             link = res.get("link", "")
@@ -91,7 +91,9 @@ class InformationRetrieval:
 
             formatted_entry = f"{0 + idx + 1}. {link} ({published_time}): {title}. {snippet}.\n"
             formatted_res.append(formatted_entry)
-
+        if len(formatted_res) == 0:
+            logging.warning("No relevant information found.")
+            return "No relevant information found."
         return "".join(formatted_res)
 
     def search(self, query):
@@ -116,7 +118,8 @@ class InformationRetrieval:
             return self.format_google(self.all_results[query])
         except Exception as e:
             print(e)
-            return ""
+            logging.warning("Some error occurred during the search.")
+            return "No relevant information found."
 
 
 google_description = """Get previews of the top google search results to get more information about the statement. The function always returns the next 10 results and can be called multiple times. If initial results seem unrelated you may use quotation marks to search for an exact phrase. Use a minus sign to exclude a word from the search.  Use before:date and after:date to search for results within a specific time period. Do not google the entire statement verbatim."""
@@ -151,6 +154,11 @@ Final Answer: The context demanded by the user.
 - **Context:** (Provide a precise, concise, and factual summary of the topic, incorporating context from the sources)
 - **Warning:** (Explain potential risks of misinformation precisely, including how the statement might be misleading and what important context it might be missing)
 - **Sources:** (List all important sources with hyperlinks)
+
+**Example Final Answer in case no results are found:**
+Context: No relevant information found.
+Warning: The statement may not be widely discussed or may not have been indexed by search engines.
+Sources: None
 
 **Example Final Answer:**  
 Context: Electric vehicles (EVs) produce fewer greenhouse gas emissions over their lifetime compared to gasoline-powered cars. EVs emit no tailpipe emissions and are more efficient in energy use. However, their production, particularly the manufacturing of batteries, involves significant environmental impact due to energy-intensive processes and raw material extraction.
