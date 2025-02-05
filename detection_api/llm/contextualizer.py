@@ -10,7 +10,7 @@ from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.tools import BaseTool
 from llm.load_llm import load_llm
 
-from detection_api.llm.google_retriever import InformationRetrieval
+from llm.google_retriever import InformationRetrieval
 
 # Load environment variables, including API keys for Google and OpenAI.
 load_dotenv()
