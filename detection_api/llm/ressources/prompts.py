@@ -22,7 +22,7 @@ Your task is to carefully analyze the given article and identify any of the **6 
      - *Appeal to Hypocrisy*: "They criticize spending, yet they approved lavish spending themselves."
      - *Questioning the Reputation*: "This organization has always been run by scoundrels."
 
-2. [Justification]:  
+2. [Poor Justification]:  
    These techniques try to legitimize or validate an idea, policy, or action by appealing to authorities, shared values, popularity, fear, prejudice, or pride.  
    **Includes Fine-Grained Techniques**: Flag Waving, Appeal to Authority, Appeal to Popularity, Appeal to Values, Appeal to Fear/Prejudice.  
    - Description:  
@@ -100,7 +100,7 @@ The output should be valid JSON, with each coarse-grained propaganda technique a
             "location": "Bush the Lesser cannot lead the country effectively."
         }
     ],
-    "Justification": [
+    "Poor Justification": [
         {
             "explanation": "This passage appeals to national pride to justify the proposed war effort.",
             "location": "Entering this war will secure a brighter future for our nation."
