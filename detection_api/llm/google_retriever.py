@@ -103,7 +103,6 @@ class InformationRetrieval:
 
             formatted_results, query_mapping = self.format_google(self.all_results[query])
             return formatted_results
-
         except Exception as e:
             logging.warning(f"Search error occurred: {e}", exc_info=True)
             return "No relevant information found."
