@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import logging
 import os
 import time
-
 import pandas as pd
-from dotenv import load_dotenv
 from langchain import hub
 from langchain.agents import Tool
 from langchain.agents import create_react_agent, AgentExecutor
@@ -13,7 +15,7 @@ from llm.load_llm import load_llm
 from llm.google_retriever import InformationRetrieval
 
 # Load environment variables, including API keys for Google and OpenAI.
-load_dotenv()
+
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID", "default_cse_id")
 GOOGLE_APIKEY = os.getenv("GOOGLE_API_KEY", "default_api_key")
 
