@@ -112,11 +112,12 @@ Thought:{agent_scratchpad}"""
 
 
 class Contextualizer:
-    def __init__(self, model_name, cse_id=GOOGLE_CSE_ID, api_key=GOOGLE_APIKEY):
+    def __init__(self, model_name: str, api_key: str = None):
         self.llm = load_llm(model_name,
                             max_tokens=4096,
                             temperature=0,
-                            streaming=True)
+                            streaming=True,
+                            api_key=api_key)
 
     async def seems_factual(self, statement):
         """
