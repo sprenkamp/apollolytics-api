@@ -41,6 +41,7 @@ class Request(BaseModel):
     model_name: str
     text: str
     contextualize: Union[Literal["Auto"], bool] = False
+    api_key: Optional[str] = None
 
 
 # Define a function to process each entry in the analysis results
@@ -74,9 +75,9 @@ async def process_entry(entry, contextualizer: Contextualizer, auto=False):
 
 
 # Define a function to contextualize the analysis results
-async def contextualize(request, analysis_results):
+async def contextualize(request: Request, analysis_results):
     if request.contextualize in [True, "Auto"]:
-        contextualizer = Contextualizer(model_name=request.model_name)
+        contextualizer = Contextualizer(model_name=request.model_name, api_key=request.api_key)
         tasks = []
 
         for category, entries in analysis_results.items():
@@ -92,14 +93,15 @@ async def contextualize(request, analysis_results):
 
 
 # Define the main route for the FastAPI application
-async def detect_propaganda_async(request):
-    inference_class = OpenAITextClassificationPropagandaInference(model_name=request.model_name)
+async def detect_propaganda_async(request: Request):
+    inference_class = OpenAITextClassificationPropagandaInference(model_name=request.model_name,
+                                                                  api_key=request.api_key)
     analysis_results = await inference_class.analyze_article(request.text)
     return analysis_results
 
 
 async def handle_request(data, websocket, repo):
-    request = Request.parse_raw(data)
+    request = Request.model_validate_json(data)
     with logfire.span("handle_request user_id={user_id} model_name={model_name} contextualize={contextualize}",
                       user_id=request.user_id,
                       model_name=request.model_name,

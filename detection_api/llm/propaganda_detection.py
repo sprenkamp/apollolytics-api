@@ -4,7 +4,13 @@ from llm.load_llm import load_llm  # Custom function for loading language models
 import json
 import logging
 import time
+
+import llm.ressources.prompts as prompts
+from langchain.schema import HumanMessage, SystemMessage  # Custom schema definitions for messages
+from llm.load_llm import load_llm  # Custom function for loading language models
+
 RANDOM_SEED = 42
+
 
 # Class definition for performing propaganda technique detection using OpenAI's models
 class OpenAITextClassificationPropagandaInference:
@@ -13,7 +19,7 @@ class OpenAITextClassificationPropagandaInference:
     It encapsulates methods for sending structured prompts to the model and parsing the responses.
     """
 
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, api_key: str = None):
         """
         Initializes a new instance of the propaganda detection class.
 
@@ -26,7 +32,8 @@ class OpenAITextClassificationPropagandaInference:
                             seed=RANDOM_SEED,  # NOTE currently no supported of the o1 models
                             model_kwargs={
                                 "response_format": {"type": "json_object"}
-                            })
+                            },
+                            api_key=api_key)
 
     async def detect_explain(self, input_text: str) -> dict:
         """
@@ -84,7 +91,7 @@ class OpenAITextClassificationPropagandaInference:
             "Doubt"
         ]
         for technique in detections.keys():
-            #if technique in propaganda_techniques:
+            # if technique in propaganda_techniques:
             if technique not in extracted_techniques:
                 extracted_techniques[technique] = []
             for detection in detections[technique]:
@@ -92,7 +99,7 @@ class OpenAITextClassificationPropagandaInference:
                     f"explanation": detection["explanation"],
                     "location": detection["location"].strip().strip('"').strip("'")
                 })
-            #else:
+            # else:
             #    logging.info(f"Unknown technique detected: {technique}")
         return extracted_techniques
 
